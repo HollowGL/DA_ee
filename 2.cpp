@@ -1,32 +1,17 @@
 #include <cstdio>
 
 int fib(int);
+int m_fib(int);
 
 int main() {
-
-    int n, max = 0;
+    int n;
     scanf("%d", &n);
-    int *a = new int[n];
+    int a[20];
     for (int i = 0; i < n; i++) {
         scanf("%d", &a[i]);
-        // max = a[i] > max ? a[i] : max;
     }
-
-    // int *fib = new int[max + 1];
-    // fib[0] = 0;
-    // fib[1] = 1;
-    // for (int i = 2; i < max + 1; i++) {
-    //     fib[i] = (fib[i - 2] + fib[i - 1]) % 9973;
-    // }
-
-    // for (int i = 0; i < n; i++) {
-    //     printf("%d\n", fib[a[i]]);
-    // }
     for (int i = 0; i < n; i++) 
-        printf("%d\n", fib(a[i]));
-
-    delete[] a;
-    // delete[] fib;
+        printf("%d\n", m_fib(a[i]));
     return 0;
 }
 
@@ -38,4 +23,19 @@ int fib(int n) {
         f1 = temp;
     }
     return f1;
+}
+
+int m_fib(int n) {
+    if (n < 10000000)
+        return fib(n);
+    if (n % 2 == 1) {
+        int x = m_fib((n + 1) / 2);
+        int y = m_fib((n - 1) / 2);
+        return (x * x + y * y) % 9973;
+    }
+    else {
+        int x = m_fib(n / 2);
+        int y = m_fib(n / 2 - 1);
+        return (x * (2 * y + x)) % 9973;
+    }
 }
