@@ -1,5 +1,8 @@
-// 生成文件
+# 生成文件
 *.exe
 
-// windons删除exe
+# IDE配置文件
+.vscode/
+
+# windons删除exe
 clear .exe.bat
