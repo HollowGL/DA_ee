@@ -1,2 +1,5 @@
 // 生成文件
 *.exe
+
+// windons删除exe
+clear .exe.bat
