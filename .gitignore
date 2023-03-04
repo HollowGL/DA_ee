@@ -6,3 +6,6 @@
 
 # windons删除exe
 clear .exe.bat
+
+# 测试文件
+test/
