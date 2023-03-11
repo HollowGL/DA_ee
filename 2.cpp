@@ -1,41 +1,45 @@
 #include <cstdio>
+#include <vector>
+using namespace std;
 
-int fib(int);
-int m_fib(int);
+const int mod = 9973;
+const vector<vector<int>> a = {{1, 1}, {1, 0}};
+
+// 矩阵乘法
+vector<vector<int>> mat_mul(vector<vector<int> a, vector<vector<int>> b) {
+    vector<vector<int>> c(2, vector<int>(2));
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < p; ++j) {
+            c[i][j] = 0;
+            for (int k = 0; k < m; ++k) {
+                C[i][j] += (A[i][k] * B[k][j]) % mod;
+            }
+        }
+    }
+    return c;
+}
+
+// 矩阵快速幂
+vector<vector<int>> mat_pow(int n) {
+    if (n == 0) {
+        return {{1, 0}, {0, 1}};
+    }
+    vector<vector<int>> res = mat_pow(a, n / 2);
+    res = mat_mul(res, res);
+    if (n % 2 == 1) {
+        res = mat_mul(res, a);
+    }
+    return res;
+}
 
 int main() {
+
     int n;
     scanf("%d", &n);
-    int a[20];
-    for (int i = 0; i < n; i++) {
-        scanf("%d", &a[i]);
-    }
-    for (int i = 0; i < n; i++) 
-        printf("%d\n", m_fib(a[i]));
+
+    vector<vector<int>> res = mat_pow(n - 1);
+    printf("%d ", res);
+
+
     return 0;
-}
-
-int fib(int n) {
-    int f1 = 0, f2 = 1, temp;
-    for (int i = 0; i < n; i++) {
-        temp = f2;
-        f2 = (f1 + f2) % 9973;
-        f1 = temp;
-    }
-    return f1;
-}
-
-int m_fib(int n) {
-    if (n < 10000000)
-        return fib(n);
-    if (n % 2 == 1) {
-        int x = m_fib((n + 1) / 2);
-        int y = m_fib((n - 1) / 2);
-        return (x * x + y * y) % 9973;
-    }
-    else {
-        int x = m_fib(n / 2);
-        int y = m_fib(n / 2 - 1);
-        return (x * (2 * y + x)) % 9973;
-    }
 }
