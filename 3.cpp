@@ -1,33 +1,60 @@
+// reference: [双指针](https://developer.aliyun.com/article/1137665)
+
 #include <cstdio>
 #include <algorithm>
+#include <vector>
+#include <unordered_set>
+using namespace std;
 
 int main() {
+
     int n;
-    double num[3000];
     scanf("%d", &n);
+    int *num = new int[n];
     for (int i = 0; i < n; i++) {
-        scanf("%lf", &num[i]);
+        scanf("%d", &num[i]);
     }
-    std::sort(num, num + n);   // 默认从小到大
+    if (n < 3) {
+        printf("%d", 0);
+        return 0;
+    }
 
+    sort(num, num + n);
     int count = 0;
-    double old1 = 1, old2 = 1, old3 = 1;
-    for (int i = 0; i < n - 2; i++) {
-        for (int j = i + 1; j < n - 1; j++) {
-            for (int k = j + 1; k < n; k++) {
-                if (num[i] + num[j] == num[k] || num[j] + num[k] == num[i] || num[i] + num[k] == num[j]) {
-                    if (num[i] != old1 || num[j] != old2 || num[k] != old3) {
-                        count++;
-                        old1 = num[i];
-                        old2 = num[j];
-                        old3 = num[k];
-                    }
-                }
-
+    vector<vector<int> > v;
+    
+    for (int i = 0; i < n; i++) {
+        if (i > 0 && num[i] == num[i - 1]) {
+            continue;
+        }
+        int left = 0, right = n - 1;
+        while (left < right) {
+            if (left == i) {
+                left++;
+                continue;
             }
+            if (right == i) {
+                right--;
+                continue;
+            }
+            if (num[left] + num[right] < num[i]) {  
+                left++;
+            } else if (num[left] + num[right] > num[i]) {
+                right--;
+            } else {
+                v.push_back({num[i], num[left], num[right]});
+                count++;
+                while(left < right && num[left] == num[left + 1])  left++;
+                while(left < right && num[right] == num[right - 1])  right--;
+                left++;
+                right--;
+            }      
         }
     }
-    printf("%d", count);
+    printf("%d\n", count);
+    for (int i = 0; i < v.size(); i++) {
+        printf("%d %d %d    ", v[i][0], v[i][1], v[i][2]);
+    }
 
     return 0;
 }
