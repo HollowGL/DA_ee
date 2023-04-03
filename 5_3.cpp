@@ -41,7 +41,7 @@ string findStr(const string& a, const string& b) {
 int main() {
 
     if (debug) {
-        freopen("../data.in", "r", stdin);
+        freopen("data.in", "r", stdin);
         auto start = chrono::high_resolution_clock::now();
         string a, b;
         cin >> a >> b;
