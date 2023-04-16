@@ -3,6 +3,7 @@
 
 # IDE配置文件
 .vscode/
+.idea/
 
 # windons删除exe
 clear .exe.bat
