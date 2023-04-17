@@ -25,7 +25,7 @@ public:
         root = process(preorder, 0, n - 1);
         Node *p = root;
         while (p->right) { p = p->right; }
-        succflag = p->value; // 实际上就是根结点的中序后继
+        succflag = p->value; // 实际上就是中序遍历的最后一个值，也是最大值
     }
 
     // 通过前序遍历构建二叉树
