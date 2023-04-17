@@ -1,5 +1,10 @@
-# 生成文件
+# Windows生成文件
 *.exe
+
+# macOS生成文件 
+*.dsYM/
+.DS_Store
+[1-9]
 
 # IDE配置文件
 .vscode/

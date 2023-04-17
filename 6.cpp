@@ -97,7 +97,7 @@ void levelOrderTraversal(Node* root) {
         for (int i = 0; i < size; i++) {
             Node* node = q.front();
             q.pop();
-            cout << node->value << "+";
+            cout << node->value << "_";
             if (node->maxLeft != -1) {
                 cout << node->maxLeft << " ";
             } else {
@@ -127,7 +127,7 @@ int main() {
         scanf("%d", &preorder[i]);
     }
     BST bst(preorder, n);
-    delete preorder;  // 有用，不删会MLE
+    delete[] preorder;  // 有用，不删会MLE
 
     if (debug) {
         levelOrderTraversal(bst.root);
