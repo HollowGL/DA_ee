@@ -25,7 +25,7 @@ public:
         root = process(preorder, 0, n - 1);
         Node *p = root;
         while (p->right) { p = p->right; }
-        succflag = p->value; // 实际上就是根结点的中序后继
+        succflag = p->value; // 实际上就是中序遍历的最后一个值，也是最大值
     }
 
     // 通过前序遍历构建二叉树
@@ -97,7 +97,7 @@ void levelOrderTraversal(Node* root) {
         for (int i = 0; i < size; i++) {
             Node* node = q.front();
             q.pop();
-            cout << node->value << "+";
+            cout << node->value << "_";
             if (node->maxLeft != -1) {
                 cout << node->maxLeft << " ";
             } else {
@@ -127,7 +127,7 @@ int main() {
         scanf("%d", &preorder[i]);
     }
     BST bst(preorder, n);
-    delete preorder;  // 有用，不删会MLE
+    delete[] preorder;  // 有用，不删会MLE
 
     if (debug) {
         levelOrderTraversal(bst.root);
