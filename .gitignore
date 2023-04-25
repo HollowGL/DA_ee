@@ -11,3 +11,4 @@ clear .exe.bat
 # 测试文件
 test/
 *.zip
+data.in
