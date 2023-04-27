@@ -1,14 +1,11 @@
 #include <cstdio>
-#include <limits>
-
-/*仅实现了单向Dijkstra算法*/
 
 bool debug = false;
-int inf = 1000000000;
+int inf = 10000000;
 
 struct Gnode {
-    int v;
-    int weight;
+    int m_v;
+    int m_weight;
     Gnode *next;
 };
 
@@ -20,35 +17,49 @@ struct Edge {
 
 struct Gragh {
     int vCnt;
-    int eCnt;
+    // int eCnt;   // 在本题中，没有必要储存边数
     Gnode *adj;
 };
 
-void init(Gragh *gragh, int v) {
-    gragh->adj = new Gnode[v];
-    gragh->vCnt = v;
-    gragh->eCnt = 0;
-    for (int i = 0; i < v; i++) {
+void init(Gragh *gragh, int v) {   // 复制一个图与原图相连
+    gragh->adj = new Gnode[v * 2];
+    gragh->vCnt = v;             
+    for (int i = 0; i < gragh->vCnt; i++) {   // 各点与其复制点相连
         gragh->adj[i].next = nullptr;
-        gragh->adj[i].v = i;
-        gragh->adj[i].weight = 0;
+        gragh->adj[i].m_v = i;
+        gragh->adj[i].m_weight = 0;
+    }
+    for (int i = 0; i < v; i++) {  // 原图到新图权重设为0
+        Gnode *newNode = new Gnode;
+        newNode->m_v = v + i;
+        newNode->m_weight = 0;
+        newNode->next = gragh->adj[i].next;
+        gragh->adj[i].next = newNode;
     }
 }
 
+// 同时在新图中插入复制反向边
 void insert(Gragh *gragh, int v, int w, int weight) {
     Gnode *newNode = new Gnode;
-    newNode->v = w;
-    newNode->weight = weight;
+    newNode->m_v = w;
+    newNode->m_weight = weight;
     newNode->next = gragh->adj[v].next;
     gragh->adj[v].next = newNode;
-    gragh->eCnt++;
+    // gragh->eCnt++;
+
+    Gnode *newNodeCopy = new Gnode;
+    newNodeCopy->m_v = v + gragh->vCnt;
+    newNodeCopy->m_weight = weight;
+    newNodeCopy->next = gragh->adj[w + gragh->vCnt].next;
+    gragh->adj[w + gragh->vCnt].next = newNodeCopy;
+    // gragh->eCnt++;
 }
 
 int weightOfAdjVex(Gragh *gragh, int v, int w) {
     if (gragh == nullptr) return -1;
     Gnode *t = gragh->adj[v].next;
     while (t) {
-        if (t->v == w) return t->weight;
+        if (t->m_v == w) return t->m_weight;
         t = t->next;
     }
     return inf;
@@ -68,20 +79,20 @@ int minEdge(Edge *pEdge, int num) {
 }
 
 int dijkstra(Gragh *gragh, int v, Edge *spt) {
-    Edge *path = new Edge[gragh->vCnt];
-    for (int i = 0; i < gragh->vCnt; i++) {  // 初始化源点到各点距离
+    Edge *path = new Edge[gragh->vCnt * 2];
+    for (int i = 0; i < gragh->vCnt * 2; i++) {  // 初始化源点到各点距离
         path[i].begin = v;
         path[i].end = i;
         path[i].weight = weightOfAdjVex(gragh, v, i);
 
-        if (debug) { printf("%d-%d: %d  ", v, i, path[i].weight); }
+        // if (debug) { printf("%d-%d: %d  ", v, i, path[i].weight); }
     }
     path[v].weight = -1; // spt内顶点距离设为-1吧
     int edgeCount = 0;
-    for (int i = 1; i < gragh->vCnt; i++) {
-        int pathNum = minEdge(path, gragh->vCnt); 
+    for (int i = 1; i < gragh->vCnt * 2; i++) {
+        int pathNum = minEdge(path, gragh->vCnt * 2); 
 
-        if (debug) printf("\n最短边：%d-%d: %d\n", path[pathNum].begin, path[pathNum].end, path[pathNum].weight);
+        // if (debug) printf("\n最短边：%d-%d: %d\n", path[pathNum].begin, path[pathNum].end, path[pathNum].weight);
 
         spt[edgeCount] = path[pathNum];
         edgeCount++;
@@ -89,13 +100,13 @@ int dijkstra(Gragh *gragh, int v, Edge *spt) {
 
         Gnode* p = gragh->adj[curV].next;  // 利用curV的邻接点更新path
         while (p != nullptr) {
-            int w = path[curV].weight + p->weight;
-            if (w < path[p->v].weight) {
-                path[p->v].begin = curV;
-                path[p->v].weight = w;
-                if (debug) {
-                    printf("成功加入一条边: %d-%d: %d\n", path[p->v].begin, path[p->v].end, path[p->v].weight);
-                }
+            int w = path[curV].weight + p->m_weight;
+            if (w < path[p->m_v].weight) {
+                path[p->m_v].begin = curV;
+                path[p->m_v].weight = w;
+                // if (debug) {
+                //     printf("成功加入一条边: %d-%d: %d\n", path[p->m_v].begin, path[p->m_v].end, path[p->m_v].weight);
+                // }
             }
             p = p->next;
         }
@@ -108,12 +119,12 @@ int dijkstra(Gragh *gragh, int v, Edge *spt) {
 
 int main() {
 
-    if (debug) { freopen("../data.in", "r", stdin); }
+    if (debug) { freopen("./data.in", "r", stdin); }
 
     int vCnt, eCnt;
     scanf("%d%d", &vCnt, &eCnt);
 
-    if (debug) { printf("%d %d", vCnt, eCnt); }
+    // if (debug) { printf("%d %d", vCnt, eCnt); }
     
     Gragh *gragh = new Gragh;
     init(gragh, vCnt);
@@ -123,55 +134,27 @@ int main() {
         insert(gragh, u - 1, v - 1, w);
     }
 
-    Edge *spt0 = new Edge[eCnt];             // 0到其它点的单向最短路径
+    Edge *spt0 = new Edge[vCnt * 2];           
     int edgeCount0 = dijkstra(gragh, 0, spt0);
-    int *res0 = new int[edgeCount0 + 1];
-    for (int i = 0; i < edgeCount0; i++) 
-        res0[spt0[i].end] = spt0[i].weight;
-    res0[0] = 0;
 
-    int *allRes = new int[vCnt];            // 双向最短路径
-    for (int i = 0; i < vCnt; i++)
-        allRes[i] = inf;
+    if (debug) {
+        for (int i = 0; i < vCnt * 2; i++)
+            printf("%d-%d shortest: %d   ", spt0[i].begin, spt0[i].end, spt0[i].weight);
+    }
 
-    for (int i = 1; i < vCnt; i++) {        // i到其它点的单向最短路径
-        Edge *spti = new Edge[eCnt];
-        int edgeCounti = dijkstra(gragh, i, spti);
-        int *resi = new int[edgeCounti + 1];
-        for (int i = 0; i < edgeCounti; i++) 
-            resi[spti[i].end] = spti[i].weight;
-        resi[i] = 0;
-
-        if (debug) {
-            printf("\n0-j: \n");
-            for (int i = 0; i < vCnt; i++) 
-                printf("%d ", res0[i]);
-            printf("\n%d-j: \n", i);
-            for (int i = 0; i < vCnt; i++) 
-                printf("%d ", resi[i]);
-            printf("\n");
-        }
-
-        int shortest = inf;                 // 通过两个单向路径更新双向路径
-        for (int j = 0; j < vCnt; j++) {
-            if (res0[j] + resi[j] < shortest) {
-                allRes[i] = res0[j] + resi[j];
-                shortest = allRes[i];
-            }
-        }
-    }    
-    // if (debug) {
-    //     printf("\n%d", allRes[5]);
-    // }
-
-    for (int i = 1; i < vCnt; i++) {
-        if (allRes[i] < inf)
-            printf("%d ", allRes[i]);
-        else 
+    int *res = new int[vCnt * 2];
+    for (int i = 0; i < vCnt * 2; i++) {
+        res[spt0[i].end] = spt0[i].weight;
+    }
+    for (int i = vCnt + 1; i < vCnt * 2; i++) {
+        if (res[i] < inf) 
+            printf("%d ", res[i]);
+        else
             printf("-1 ");
     }
-    
 
-    delete[] allRes;    
+    delete[] gragh;
+    delete[] spt0;
+    delete[] res;
     return 0;
 }
