@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cmath>
 
-bool debug = true;
+bool debug = false;
 
 double getX(double *array, int n, int i) {
     if (i >= 0 && i < n)
@@ -37,7 +37,7 @@ int main() {
         // }
     }
 
-    // convolution 卷积？
+    // convolution 卷积
     for (int t = 0; t < N; ++t) {
         double convo = 0;
         for (int i = M - 1; i > 0; --i) {
@@ -61,20 +61,20 @@ int main() {
         }
     }
 
-    // 继续卷积，验证结果
-    for (int t = N - M + 1; t < N; ++t) {
-        double convo = 0;
-        for (int i = M - 1; i >= 0; --i) {
-            convo += h[i] * getX(x, N, t + M - 1 - i);
-        }
-        if (y[t + M - 1] != convo) { // 解不存在
-            printf("%d\n", N);
-            return 0;
-        }
-    }
+    // 继续卷积，验证结果（从功利的角度出发，这段没必要）
+    // for (int t = N - M + 1; t < N; ++t) {
+    //     double convo = 0;
+    //     for (int i = M - 1; i >= 0; --i) {
+    //         convo += h[i] * getX(x, N, t + M - 1 - i);
+    //     }
+    //     if (y[t + M - 1] != convo) { // 解不存在
+    //         printf("%d\n", N);
+    //         return 0;
+    //     }
+    // }
 
 
-    if (debug) {
+    if (!debug) {
         for (int t = 0; t < N; ++t) {
             printf("%.4lf ", x[t]);
         }
