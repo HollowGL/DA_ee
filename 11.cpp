@@ -1,7 +1,7 @@
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <vector>
-#include <cmath>
 #define PI 3.1415926535
 
 using namespace std;
@@ -10,7 +10,7 @@ bool debug = true;
 
 struct point {
     int x, y;
-    // point(int x, int y) : x(x), y(y) {}
+    point(int x, int y) : x(x), y(y) {}
     bool operator<(point p) const { return x < p.x || (x == p.x && y < p.y); }
 };
 
@@ -20,11 +20,13 @@ int xcross(point p, point q, point r) {
 
 double angle(point p, point q, point r) {
     double num = (p.x - q.x) * (r.x - q.x) + (p.y - q.y) * (r.y - q.y);
-    double den = sqrt(pow(p.x - q.x, 2) + pow(p.y - q.y, 2)) * sqrt(pow(r.x - q.x, 2) + pow(r.y - q.y, 2));
-    return acos(num / den) / PI * 180;
+    double den = sqrt(pow(p.x - q.x, 2) + pow(p.y - q.y, 2)) *
+                 sqrt(pow(r.x - q.x, 2) + pow(r.y - q.y, 2));
+    return num / den;
 }
 
-void convexHull(point *points, int n) {
+void convexHull(vector<point> &points) {
+    int n = points.size();
     vector<point> hull;
 
     if (n < 3) {
@@ -54,24 +56,26 @@ void convexHull(point *points, int n) {
 
     if (debug) {
         for (auto point : hull) {
-            cout << "(" << point.x << ", " << point.y << ")" << "  ";
+            cout << "(" << point.x << ", " << point.y << ")"
+                 << "  ";
         }
     }
 
     int m = hull.size();
-    double min = 180;
+    double max = -1;
     for (int i = 0; i < m; ++i) {
         double temp = angle(hull[i], hull[(i + 1) % m], hull[(i + 2) % m]);
-        if (temp < min) {
-            min = temp;
+        if (temp > max) {
+            max = temp;
         }
     }
-    printf("%.7lf\n", min);
+    printf("%.7lf\n", acos(max) / PI * 180);
 }
 
 int main() {
 
-    if (debug) freopen("./data.in", "r", stdin);
+    if (debug)
+        freopen("./data.in", "r", stdin);
 
     int total;
     scanf("%d", &total);
@@ -79,15 +83,13 @@ int main() {
     for (int i = 0; i < total; ++i) {
         int appleCnt;
         scanf("%d", &appleCnt);
-        point *apples = new point[appleCnt];
+        vector<point> points;
         for (int j = 0; j < appleCnt; ++j) {
             int x, y;
             scanf("%d%d", &x, &y);
-            apples[j].x = x;
-            apples[j].y = y;
+            points.push_back({x, y});
         }
-        convexHull(apples, appleCnt);
-        delete[] apples;
+        convexHull(points);
     }
 
     return 0;
