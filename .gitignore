@@ -2,9 +2,10 @@
 *.exe
 
 # macOS生成文件 
-*.dsYM/
+*.dSYM/
 .DS_Store
-[1-9]
+[1-9]*
+![1-9]*idea/
 
 # IDE配置文件
 .vscode/

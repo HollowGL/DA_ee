@@ -19,6 +19,13 @@ bool xcross(point a, point b, point c) {
     return (a.x - c.x) * (b.y - c.y) >= (b.x - c.x) * (a.y - c.y);
 }
 
+double angle(point p, point q, point r) {
+    double num = (p.x - q.x) * (r.x - q.x) + (p.y - q.y) * (r.y - q.y);
+    double den = sqrt(pow(p.x - q.x, 2) + pow(p.y - q.y, 2)) *
+                 sqrt(pow(r.x - q.x, 2) + pow(r.y - q.y, 2));
+    return num / den;
+}
+
 point node[100005];
 int num[100005];
 point dedup[100005];
@@ -67,6 +74,11 @@ int main() {
             printf("\n");
         }
 
+        if (n == 1 || n == 2) {
+            printf("0.0000000\n");
+            continue;
+        }
+
         num[0]=0; num[1]=1;
         int top = 1;
         for (int i = 2; i < n; ++i) {
@@ -84,13 +96,22 @@ int main() {
         }
 
         if (debug) {
-            printf("计算凸包：\n");
+            printf("计算凸包：top = %d\n", top);
             for (int i = 0; i < top; ++i) {
                 printf("(%d, %d) ", dedup[num[i]].x, dedup[num[i]].y);
             }
             printf("\n");
             printf("\n");
         }
+
+        num[top] = num[0];
+        num[top + 1] = num[1];
+        double max = -1;
+        for (int i = 0; i < top; ++i) {
+            double temp = angle(dedup[num[i]], dedup[num[i + 1]], dedup[num[i + 2]]);
+            if (temp > max) max = temp;
+        }
+        printf("%.7lf\n", acos(max) / M_PI * 180);
     }
 
     return 0;
