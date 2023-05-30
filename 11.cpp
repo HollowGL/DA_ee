@@ -12,6 +12,7 @@ struct point {
     int x, y;
     point(int x, int y) : x(x), y(y) {}
     bool operator<(point p) const { return x < p.x || (x == p.x && y < p.y); }
+    bool operator==(point p) const { return y == p.y ? x == p.x : false; }
 };
 
 int xcross(point p, point q, point r) {
@@ -34,6 +35,7 @@ void convexHull(vector<point> &points) {
         return;
     }
 
+    // 找到初始值
     int l = 0;
     for (int i = 1; i < n; i++) {
         if (points[i].x < points[l].x) {
@@ -46,7 +48,13 @@ void convexHull(vector<point> &points) {
         hull.push_back(points[p]);
 
         q = (p + 1) % n;
+        while (p == q) { // 去重
+            q = (q + 1) % n;
+        }
         for (int i = 0; i < n; i++) {
+            if (points[p] == points[i] || points[q] == points[i]) { // 去重
+                continue;
+            }
             if (xcross(points[p], points[i], points[q]) < 0) {
                 q = i;
             }

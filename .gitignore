@@ -9,6 +9,7 @@
 # IDE配置文件
 .vscode/
 .idea/
+cmake-build-debug/
 
 # windons删除exe
 clear .exe.bat
