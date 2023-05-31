@@ -6,6 +6,7 @@
 .DS_Store
 [1-9]*
 ![1-9]*idea/
+main
 
 # IDE配置文件
 .vscode/
