@@ -2,7 +2,7 @@
 #include<cmath>
 #include<algorithm>
 
-bool debug = true;
+bool debug = false;
 
 struct point {
     int x, y;
@@ -10,9 +10,8 @@ struct point {
 };
 
 bool cmp(point a, point b) {
-    if (a.y == b.y && a.x < b.x) return true;
-    else if (a.y < b.y) return true;
-    return false;
+    if (a.y == b.y) return a.x < b.x;
+    return a.y < b.y;
 }
 
 bool xcross(point a, point b, point c) {
@@ -57,10 +56,7 @@ int main() {
         dedup[0].y = node[0].y;
         n = 1;
         for (int i = 1; i < n0; ++i) {
-            if (node[i] == node[i - 1]) {
-                i++;
-                if (i == n0) break;
-            }
+            if (node[i] == node[i - 1]) continue;
             dedup[n].x = node[i].x;
             dedup[n].y = node[i].y;
             n++;
@@ -79,7 +75,8 @@ int main() {
             continue;
         }
 
-        num[0]=0; num[1]=1;
+        num[0] = 0; 
+        num[1] = 1;
         int top = 1;
         for (int i = 2; i < n; ++i) {
             while (top > 0 && xcross(dedup[i], dedup[num[top]], dedup[num[top - 1]]))
@@ -109,7 +106,6 @@ int main() {
             continue;
         }
 
-        num[top] = num[0];
         num[top + 1] = num[1];
         double max = -1;
         for (int i = 0; i < top; ++i) {
