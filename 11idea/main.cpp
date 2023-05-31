@@ -21,8 +21,8 @@ bool xcross(point a, point b, point c) {
 
 double angle(point p, point q, point r) {
     double num = (p.x - q.x) * (r.x - q.x) + (p.y - q.y) * (r.y - q.y);
-    double den = sqrt(pow(p.x - q.x, 2) + pow(p.y - q.y, 2)) *
-                 sqrt(pow(r.x - q.x, 2) + pow(r.y - q.y, 2));
+    double den = sqrt((pow(p.x - q.x, 2) + pow(p.y - q.y, 2)) *
+                      (pow(r.x - q.x, 2) + pow(r.y - q.y, 2)));
     return num / den;
 }
 
@@ -82,7 +82,7 @@ int main() {
         num[0]=0; num[1]=1;
         int top = 1;
         for (int i = 2; i < n; ++i) {
-            while (top > 1 && xcross(dedup[i], dedup[num[top]], dedup[num[top - 1]]))
+            while (top > 0 && xcross(dedup[i], dedup[num[top]], dedup[num[top - 1]]))
                 top--;
             top++;
             num[top] = i;
@@ -104,6 +104,11 @@ int main() {
             printf("\n");
         }
 
+        if (top == 1 || top == 2) {
+            printf("0.0000000\n");
+            continue;
+        }
+
         num[top] = num[0];
         num[top + 1] = num[1];
         double max = -1;
@@ -111,7 +116,7 @@ int main() {
             double temp = angle(dedup[num[i]], dedup[num[i + 1]], dedup[num[i + 2]]);
             if (temp > max) max = temp;
         }
-        printf("%.7lf\n", acos(max) / M_PI * 180);
+        printf("%.7lf\n", acos(max) * 180 / M_PI);
     }
 
     return 0;
