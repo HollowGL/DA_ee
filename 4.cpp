@@ -5,7 +5,7 @@ using namespace std;
 
 bool debug = false;
 
-// short N[200005] = {0};
+// short N[200005] = {0}; // 线性表记录原始分数，仅供debug用
 int c[200005] = {0};   // short也可过oj
 
 int n, m;
@@ -49,6 +49,7 @@ int restore(int t) {                      // 还原退课前的序号
 
 int main() {
     if (debug) {
+        // 重定向了输入，将测例单独放在data.in文本文件里
         freopen("data.in", "r", stdin);
     }
 
@@ -69,14 +70,12 @@ int main() {
                 printf("指令%d 序号%d修改分数为%d >>> ", flag, t1, t2);
             }
             t1 = restore(t1);
-            // t2 = restore(t2);   // 分数不是序号，不能还原
 
             int pre = sum(t1, t1);
             addScore(t1, t2 - pre);
-            // addScore(t1, t2 - N[t1]);
-            // N[t1] = t2;   // 初始分数列表也需改变
 
             if (debug) {
+                // N[t1] = t2; 
                 printf("序号%d修改分数为%d\n", t1, t2);
             }
         }
@@ -111,7 +110,7 @@ int main() {
             drop[countDrop] = t1;
             countDrop++;
             sort(drop, drop + countDrop);
-            // N[t1] = 0;        // 修改退课的分数为0，但其实不影响结果
+            // N[t1] = 0;
 
             if (debug) {
                 printf("序号%d退课\n", t1);
@@ -128,10 +127,10 @@ int main() {
             for (int i = 1; i <= n; i++) {
                 cout << c[i] << " ";
             }
-            cout << "   实际分数：";
-            for (int i = 1; i <= n; i++) {
-                // cout << N[i] << " ";
-            }
+            // cout << "   实际分数：";
+            // for (int i = 1; i <= n; i++) {
+            //     cout << N[i] << " ";
+            // }
             cout << endl;
             cout << "=======================================" << endl;
         }
