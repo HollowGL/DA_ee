@@ -5,6 +5,7 @@
 *.dSYM/
 .DS_Store
 [1-9]*
+![1-9].cpp
 ![1-9]*idea/
 main
 
