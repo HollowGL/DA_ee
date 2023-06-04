@@ -13,9 +13,9 @@ int main() {
     ushort us0 = 1 << 0;
     ushort us1 = 1 << 1;
     ushort us2 = 1 << 2;
-    ushort a = 0x000f;
+    ushort a = 14;
 
-    printf("%d", a & us2);
+    printf("%d", a & us0);
 
 
 
