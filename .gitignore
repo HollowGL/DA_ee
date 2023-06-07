@@ -4,9 +4,7 @@
 # macOS生成文件 
 *.dSYM/
 .DS_Store
-[1-9]*
-![1-9].cpp
-![1-9]*idea/
+[0-9]{1}
 main
 
 # IDE配置文件
