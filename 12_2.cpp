@@ -2,16 +2,12 @@
 #include <algorithm>
 typedef unsigned short ushort;
 
-bool debug = true;
+bool debug = false;
 
 struct Food {
     ushort index;
     ushort nutrients;
 };
-
-ushort N, M, target = 0;
-ushort *Mi, *Ni, resList[65540];
-Food dp[65540];
 
 ushort binFromList(ushort len) {
     ushort res = 0, temp;
@@ -39,15 +35,17 @@ bool satisfy(ushort s, ushort t) {
     return (s | t) == s;
 }
 
+ushort N, M, target = 0;
+ushort Mi[65540], Ni[16], resList[16];
+Food dp[65540];
+
 int main() {
     if (debug) freopen("./data.in", "r", stdin);
 
-    scanf("%hu %hu", &N, &M);
-    Mi = new ushort[M];
+    scanf("%hu%hu", &N, &M);
     for (int i = 0; i < M; ++i) {
         scanf("%hu", &Mi[i]);
     }
-    Ni = new ushort[N];
     for (int i = 0; i < N; ++i) {
         scanf("%hu", &Ni[i]);
         target |= 1 << (Ni[i] - 1);
@@ -68,7 +66,7 @@ int main() {
         printf("\n");
     }
 
-    std::sort(dp, dp + M, cmp);
+    std::sort(dp, dp + M, cmp); // 按含营养数量从大到小排序
 
     if (debug) {
         printf("排序后:\n");
@@ -78,15 +76,12 @@ int main() {
     }
 
     // 从营养最多的食物开始选，直到满足所有营养需求
-    int cur = dp[0].nutrients;
-    // int res = 1 << dp[0].index;
-    int p = 1;
-    resList[0] = 0;
-    for (int i = 1; i < M; ++i) {
+    int cur = 0;
+    int p = 0;
+    for (int i = 0; i < M; ++i) {
         if (satisfy(cur, target)) break;
         if ((cur | dp[i].nutrients) == cur) continue; // 营养重复
         cur |= dp[i].nutrients;
-        // res |= 1 << dp[i].index;
         resList[p] = i;
         p++;
         if (debug) {
@@ -109,15 +104,34 @@ int main() {
         printf("删除后:\n");
     }
 
-    // 从营养最少的食物开始删除，直到不满足营养条件
+    // 从营养最少的食物开始删除
+    bool exist[16] = {false};
+    for (int i = 0; i < p; ++i) {
+        exist[resList[i]] = true;
+    }
     
+    int q = p - 1;
+    while (q >= 0) {
+        exist[resList[q]] = false;
+        int cur2 = 0;
+        for (int i = 0; i < p; ++i) {
+            if (exist[resList[i]]) {
+                cur2 |= dp[resList[i]].nutrients;
+            }
+        }
+        if (!satisfy(cur2, target)) {
+            exist[resList[q]] = true;
+        }
+        q--;
+    }
+
+    for (int i = 0; i < p; ++i) {
+        if (exist[resList[i]]) {
+            printf("%d ", dp[resList[i]].index);
+        }
+    }
 
 
 
-
-
-
-    delete[] Mi;
-    delete[] Ni;
     return 0;
 }
