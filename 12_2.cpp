@@ -105,7 +105,7 @@ int main() {
     }
 
     // 从营养最少的食物开始删除
-    bool exist[16] = {false};
+    bool *exist = new bool[p];
     for (int i = 0; i < p; ++i) {
         exist[resList[i]] = true;
     }
@@ -132,6 +132,6 @@ int main() {
     }
 
 
-
+    delete[] exist;
     return 0;
 }
