@@ -74,9 +74,9 @@ int main() {
     }
 
     int p = 0;
-    ushort nutrition_covered = 0; // 已选择食物的营养与所需营养交集
     while (target) {
-        int bestFood = 0;
+        int bestFood = -1;
+        ushort nutrition_covered = 0; // 已选择食物的营养与所需营养交集
         for (int i = 0; i < M; ++i) {
             int cur_covered = target & food[i].nutrients;  // 当前食物营养与所需营养交集
             if (count1(cur_covered) > count1(nutrition_covered)) {
@@ -85,10 +85,12 @@ int main() {
             }
         }
 
-        target ^= nutrition_covered;
-        resList[p] = food[bestFood].index;
-        p++;
-        nutrition_covered = 0;
+        if (bestFood != -1) {
+            target ^= nutrition_covered;
+            resList[p] = food[bestFood].index;
+            p++;
+        }
+
     }
 
     std::sort(resList, resList + p);
