@@ -4,13 +4,14 @@
 # macOS生成文件 
 *.dSYM/
 .DS_Store
-[0-9]{1}
+[0-9]{1-2}
 main
 
 # IDE配置文件
 .vscode/
 .idea/
 cmake-build-debug/
+*idea/
 
 # windons删除exe
 clear .exe.bat
