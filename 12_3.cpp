@@ -75,7 +75,6 @@ int main() {
 
     int p = 0;
     ushort nutrition_covered = 0; // 已选择食物的营养与所需营养交集
-    ushort target_copy = target;
     while (target) {
         int bestFood = -1;
         ushort nutrition_covered = 0; // 已选择食物的营养与所需营养交集
@@ -85,12 +84,6 @@ int main() {
                 nutrition_covered = cur_covered;
                 bestFood = i;
             } 
-            // else if (count1(cur_covered) == count1(nutrition_covered)) {
-            //     if (count1(food[i].nutrients) > count1(food[bestFood].nutrients)) {
-            //         nutrition_covered = cur_covered;
-            //         bestFood = i;
-            //     }
-            // }
         }
 
         if (bestFood != -1) {
@@ -98,33 +91,13 @@ int main() {
             resList[p] = food[bestFood].index;
             p++;
         }
-
-    }
-
-    // 删除多余食物
-    // 似乎没有用
-    bool *exist = new bool[65540];
-    for (int i = 0; i < p; ++i) {
-        exist[i] = true;
-    }
-    for (int i = 0; i < p; ++i) {
-        exist[resList[i]] = false;
-        int cur = 0;
-        for (int j = 0; j < p; ++j) {
-            if (exist[resList[j]]) {
-                cur |= food[j].nutrients;
-            }
-        }
-        if (!satisfy(cur, target_copy)) {
-            exist[resList[i]] = true;
-        }
     }
 
     std::sort(resList, resList + p);
-    for (int i = 0; i < p && exist[resList[i]]; ++i) {
+    for (int i = 0; i < p; ++i) {
         printf("%d ", resList[i]);
     }
 
-    delete[] exist;
+
     return 0;
 }
