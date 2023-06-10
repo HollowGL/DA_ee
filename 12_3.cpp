@@ -1,59 +1,54 @@
 #include <cstdio>
 #include <algorithm>
-typedef unsigned short ushort;
 
 bool debug = false;
 
+// 实际上仍是近似最优而不一定是全局最优
+/* 如以下案例
+6 5 4 3 3 1 1
+1 2 3 4 5 6
+1 2 3 4
+1     4   6
+  2 3   5
+        5
+          6
+expect: 1 2
+result: 0 3 4 or 0 1 2
+*/
+
 struct Food {
-    ushort index;
-    ushort nutrients;
+    int index;
+    int nutrients;
 };
 
-ushort binFromList(ushort len) {
-    ushort res = 0, temp;
-    for (int i = 0; i < len; ++i) {
-        scanf("%hu", &temp);
-        res |= 1 << (temp - 1);
-    }
-    return res;
-}
-
-int count1 (ushort num) {
-    int res = 0;
-    while (num) {
-        res += num & 1;
-        num >>= 1;
-    }
-    return res;
-}
-
-bool cmp(Food a, Food b) {
-    return count1(a.nutrients) > count1(b.nutrients);
-}
-
-bool satisfy(ushort s, ushort t) {
+bool satisfy(int s, int t) {
     return (s | t) == s;
 }
 
-ushort N, M, target = 0;
-ushort Mi[65540], Ni[16], resList[16];
+int N, M, target = 0;
+int Mi[65540], Ni[16], resList[16];
 Food food[65540];
 
 int main() {
     if (debug) freopen("./data.in", "r", stdin);
 
-    scanf("%hu%hu", &N, &M);
+    scanf("%d%d", &N, &M);
     for (int i = 0; i < M; ++i) {
-        scanf("%hu", &Mi[i]);
+        scanf("%d", &Mi[i]);
     }
     for (int i = 0; i < N; ++i) {
-        scanf("%hu", &Ni[i]);
+        scanf("%d", &Ni[i]);
         target |= 1 << (Ni[i] - 1);
     }
-    ushort check = 0;
+    int check = 0;
     for (int i = 0; i < M; ++i) {
         food[i].index = i;
-        food[i].nutrients = binFromList(Mi[i]);
+        food[i].nutrients = 0;
+        for (int j = 0; j < Mi[i]; ++j) {
+            int temp = 0;
+            scanf("%d", &temp);
+            food[i].nutrients |= 1 << (temp - 1);
+        }
         check |= food[i].nutrients;
     }
 
@@ -74,20 +69,20 @@ int main() {
     }
 
     int p = 0;
-    ushort nutrition_covered = 0; // 已选择食物的营养与所需营养交集
+    int nutrition_covered = 0; // 已选择食物的营养与所需营养交集
     while (target) {
         int bestFood = -1;
-        ushort nutrition_covered = 0; // 已选择食物的营养与所需营养交集
+        int nutrition_covered = -1; // 已选择食物的营养与所需营养交集的营养
         for (int i = 0; i < M; ++i) {
-            int cur_covered = target & food[i].nutrients;  // 当前食物营养与所需营养交集
-            if (count1(cur_covered) >= count1(nutrition_covered)) {
+            int cur_covered = __builtin_popcount(target & food[i].nutrients);  // 当前食物营养与所需营养交集
+            if (cur_covered >= nutrition_covered) {
                 nutrition_covered = cur_covered;
                 bestFood = i;
             } 
         }
 
         if (bestFood != -1) {
-            target ^= nutrition_covered;
+            target &= ~food[bestFood].nutrients;
             resList[p] = food[bestFood].index;
             p++;
         }
