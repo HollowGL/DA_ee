@@ -1,140 +1,146 @@
-#include <cstdio>
-#include <algorithm>
 #include <iostream>
+#include <queue>
 using namespace std;
 
-bool debug = false;
+// 还需把所有cin cout相关代码删除，否则会超时
+bool debug = true;
 
-// short N[200005] = {0}; // 线性表记录原始分数，仅供debug用
-int c[200005] = {0};   // short也可过oj
-
-int n, m;
-int countDrop = 0;
-int drop[10];
-
-int lowbit(int x) {
-    return x&(-x);
-}
-
-void addScore(int i, short x) {              // 给序号为i的同学加分
-    while (i <= n) {
-        c[i] += x;
-        i += lowbit(i);
+struct Node {
+    int value, maxLeft;
+    Node *left, *right;
+    Node(int v, Node *l = nullptr, Node *r = nullptr) { 
+        value = v;
+        left = l;
+        right = r;
+        maxLeft = -1;
     }
-}
+};
 
-int sum(int r, int l) {                   // 求出序号r-l之间的总成绩
-    int res1 = 0;
-    r -= 1;
-    while (r > 0) {
-        res1 += c[r];
-        r -= lowbit(r);
+class BST {
+public:
+    Node *root;
+    int succflag;         // 除了最右的右子树的叶子结点，其它结点都有中序后继，且它们的值都小于前者
+    BST() { root = NULL; }
+    BST(int preorder[], int n) {
+        root = process(preorder, 0, n - 1);
+        Node *p = root;
+        while (p->right) { p = p->right; }
+        succflag = p->value; // 实际上就是中序遍历的最后一个值，也是最大值
     }
-    int res2 = 0;
-    while (l > 0) {
-        res2 += c[l];
-        l -= lowbit(l);
-    }
-    return res2 - res1;
-}
 
-int restore(int t) {                      // 还原退课前的序号
-    for (int i = 0; i < countDrop; i++) {
-        if (t >= drop[i]) {
-            t++;
+    // 通过前序遍历构建二叉树
+    Node* process(int preorder[], int start, int end) {
+        if (start > end) return nullptr;
+        int mid = start, val = preorder[start];
+        while (mid <= end && preorder[mid] <= val) { // 找到右结点
+            mid++;
         }
+        Node* left = process(preorder, start + 1, mid - 1);
+        Node* right = process(preorder, mid, end);
+        return new Node(val, left, right);
     }
-    return t;
+};
+
+int maxLeft(Node *root) { // 中序前继
+    Node *max = root->left;
+    while (max->right != nullptr) {
+        max = max->right;
+    }
+    return max->value;
 }
+
+// 对数进行压缩，先序遍历
+Node* compress(Node *root, int succFlag) {
+    
+    if (root->left != nullptr) {
+        root->maxLeft = maxLeft(root);
+    }
+    if (!root->left && !root->right && root->value < succFlag) {
+        delete root; // 没有用
+        return nullptr;
+    }
+
+    if (root->left) {
+        root->left = compress(root->left, succFlag);
+    }
+    if (root->right) {
+        root->right = compress(root->right, succFlag);
+    }
+    return root;
+}
+
+// 打印先序遍历的结果
+void printBST(Node* root) {
+    if (root == nullptr) {
+        return;
+    }
+    printf("%d ", root->value);
+    if (root->maxLeft < 0) {
+        printf("- ");
+    } 
+    else {
+        printf("%d ", root->maxLeft);
+    }
+    printBST(root->left);   
+    printBST(root->right);   
+}
+
+void levelOrderTraversal(Node* root) {
+    if (!root) {
+        return;
+    }
+    queue<Node*> q;
+    q.push(root);
+
+    while (!q.empty()) {
+        int size = q.size();
+        for (int i = 0; i < size; i++) {
+            Node* node = q.front();
+            q.pop();
+            cout << node->value << "_";
+            if (node->maxLeft != -1) {
+                cout << node->maxLeft << " ";
+            } else {
+                cout << "- ";
+            }
+            if (node->left) {
+                q.push(node->left);
+            }
+            if (node->right) {
+                q.push(node->right);
+            }
+        }
+        cout << endl;
+    }
+}
+
 
 int main() {
     if (debug) {
-        // 重定向了输入，将测例单独放在data.in文本文件里
         freopen("data.in", "r", stdin);
     }
 
-    scanf("%d%d", &n, &m);
-    int score;
-    for (int i = 1; i <= n; i++) {
-        scanf("%d", &score);
-        addScore(i, score);
+    int n;
+    scanf("%d", &n);
+    int *preorder = new int[n];
+    for (int i = 0; i< n; i++) {
+        scanf("%d", &preorder[i]);
+    }
+    BST bst(preorder, n);
+    delete[] preorder;  // 有用，不删会MLE
+
+    if (debug) {
+        levelOrderTraversal(bst.root);
+        cout << endl;
     }
 
-    int flag, t1, t2;
-    for (int i = 1; i <= m; i++) {
-        scanf("%d", &flag);
-        if (flag == 1) {
-            scanf("%d%d", &t1, &t2);
-
-            if (debug) {
-                printf("指令%d 序号%d修改分数为%d >>> ", flag, t1, t2);
-            }
-            t1 = restore(t1);
-
-            int pre = sum(t1, t1);
-            addScore(t1, t2 - pre);
-
-            if (debug) {
-                // N[t1] = t2; 
-                printf("序号%d修改分数为%d\n", t1, t2);
-            }
-        }
-        else if (flag == 2) {
-            scanf("%d%d", &t1, &t2);
-            double len = t2 - t1 + 1;
-            if (debug) {
-                printf("指令%d 计算%d-%d平均成绩 >>> ", flag, t1, t2);
-            }
-
-            t1 = restore(t1);
-            t2 = restore(t2);
-            double avg = sum(t1, t2) / len;  // 提前记录长度即可
-
-            if (debug) {
-                printf("计算%d-%d平均成绩\n", t1, t2);
-                cout << "sum: " << sum(t1, t2) << "    popu: " << len << endl;
-            }
-            printf("%.3lf\n", avg);
-        }
-        else {
-            scanf("%d", &t1);
-            if (debug) {
-                printf("指令%d 序号%d退课 >>> ", flag, t1);
-            }
-
-            t1 = restore(t1);
-
-            int pre = sum(t1, t1);
-            addScore(t1, -pre);
-            // addScore(t1, -N[t1]);
-            drop[countDrop] = t1;
-            countDrop++;
-            sort(drop, drop + countDrop);
-            // N[t1] = 0;
-
-            if (debug) {
-                printf("序号%d退课\n", t1);
-                cout << "退课序号: ";
-                for (int i = 0; i < countDrop; i++) {
-                    cout << drop[i] << " ";
-                }
-                cout << endl;
-            }
-        }
-
-        if (debug) {
-            cout << "树状分数：";
-            for (int i = 1; i <= n; i++) {
-                cout << c[i] << " ";
-            }
-            // cout << "   实际分数：";
-            // for (int i = 1; i <= n; i++) {
-            //     cout << N[i] << " ";
-            // }
-            cout << endl;
-            cout << "=======================================" << endl;
-        }
+    compress(bst.root, bst.succflag);
+    if (debug) {
+        levelOrderTraversal(bst.root);
+    } else {
+        printBST(bst.root);
     }
+
 
     return 0;
 }

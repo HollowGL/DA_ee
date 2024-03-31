@@ -1,45 +1,140 @@
 #include <cstdio>
-#include <vector>
+#include <algorithm>
+#include <iostream>
 using namespace std;
 
-const int mod = 9973;
-const vector<vector<int>> a = {{1, 1}, {1, 0}};
+bool debug = false;
 
-// 矩阵乘法
-vector<vector<int>> mat_mul(vector<vector<int> a, vector<vector<int>> b) {
-    vector<vector<int>> c(2, vector<int>(2));
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < p; ++j) {
-            c[i][j] = 0;
-            for (int k = 0; k < m; ++k) {
-                C[i][j] += (A[i][k] * B[k][j]) % mod;
-            }
-        }
-    }
-    return c;
+// short N[200005] = {0}; // 线性表记录原始分数，仅供debug用
+int c[200005] = {0};   // short也可过oj
+
+int n, m;
+int countDrop = 0;
+int drop[10];
+
+int lowbit(int x) {
+    return x&(-x);
 }
 
-// 矩阵快速幂
-vector<vector<int>> mat_pow(int n) {
-    if (n == 0) {
-        return {{1, 0}, {0, 1}};
+void addScore(int i, short x) {              // 给序号为i的同学加分
+    while (i <= n) {
+        c[i] += x;
+        i += lowbit(i);
     }
-    vector<vector<int>> res = mat_pow(a, n / 2);
-    res = mat_mul(res, res);
-    if (n % 2 == 1) {
-        res = mat_mul(res, a);
+}
+
+int sum(int r, int l) {                   // 求出序号r-l之间的总成绩
+    int res1 = 0;
+    r -= 1;
+    while (r > 0) {
+        res1 += c[r];
+        r -= lowbit(r);
     }
-    return res;
+    int res2 = 0;
+    while (l > 0) {
+        res2 += c[l];
+        l -= lowbit(l);
+    }
+    return res2 - res1;
+}
+
+int restore(int t) {                      // 还原退课前的序号
+    for (int i = 0; i < countDrop; i++) {
+        if (t >= drop[i]) {
+            t++;
+        }
+    }
+    return t;
 }
 
 int main() {
+    if (debug) {
+        // 重定向了输入，将测例单独放在data.in文本文件里
+        freopen("data.in", "r", stdin);
+    }
 
-    int n;
-    scanf("%d", &n);
+    scanf("%d%d", &n, &m);
+    int score;
+    for (int i = 1; i <= n; i++) {
+        scanf("%d", &score);
+        addScore(i, score);
+    }
 
-    vector<vector<int>> res = mat_pow(n - 1);
-    printf("%d ", res);
+    int flag, t1, t2;
+    for (int i = 1; i <= m; i++) {
+        scanf("%d", &flag);
+        if (flag == 1) {
+            scanf("%d%d", &t1, &t2);
 
+            if (debug) {
+                printf("指令%d 序号%d修改分数为%d >>> ", flag, t1, t2);
+            }
+            t1 = restore(t1);
+
+            int pre = sum(t1, t1);
+            addScore(t1, t2 - pre);
+
+            if (debug) {
+                // N[t1] = t2; 
+                printf("序号%d修改分数为%d\n", t1, t2);
+            }
+        }
+        else if (flag == 2) {
+            scanf("%d%d", &t1, &t2);
+            double len = t2 - t1 + 1;
+            if (debug) {
+                printf("指令%d 计算%d-%d平均成绩 >>> ", flag, t1, t2);
+            }
+
+            t1 = restore(t1);
+            t2 = restore(t2);
+            double avg = sum(t1, t2) / len;  // 提前记录长度即可
+
+            if (debug) {
+                printf("计算%d-%d平均成绩\n", t1, t2);
+                cout << "sum: " << sum(t1, t2) << "    popu: " << len << endl;
+            }
+            printf("%.3lf\n", avg);
+        }
+        else {
+            scanf("%d", &t1);
+            if (debug) {
+                printf("指令%d 序号%d退课 >>> ", flag, t1);
+            }
+
+            t1 = restore(t1);
+
+            int pre = sum(t1, t1);
+            addScore(t1, -pre);
+            // addScore(t1, -N[t1]);
+            drop[countDrop] = t1;
+            countDrop++;
+            sort(drop, drop + countDrop);
+            // N[t1] = 0;
+
+            if (debug) {
+                printf("序号%d退课\n", t1);
+                cout << "退课序号: ";
+                for (int i = 0; i < countDrop; i++) {
+                    cout << drop[i] << " ";
+                }
+                cout << endl;
+            }
+        }
+
+        if (debug) {
+            cout << "树状分数：";
+            for (int i = 1; i <= n; i++) {
+                cout << c[i] << " ";
+            }
+            // cout << "   实际分数：";
+            // for (int i = 1; i <= n; i++) {
+            //     cout << N[i] << " ";
+            // }
+            cout << endl;
+            cout << "=======================================" << endl;
+        }
+    }
 
     return 0;
 }

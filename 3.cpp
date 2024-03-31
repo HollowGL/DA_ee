@@ -1,60 +1,56 @@
-// reference: [双指针](https://developer.aliyun.com/article/1137665)
+/*
+滑动窗口求最小包含子串：https://leetcode.cn/problems/minimum-window-substring/description/
+*/
 
-#include <cstdio>
-#include <algorithm>
-#include <vector>
-#include <unordered_set>
+#include <iostream>
 using namespace std;
+
+bool debug = true;
+
+
+string findStr(const string& a, const string& b) {
+    int map[256] = { 0 };
+    for (auto i : b) {
+        map[i]++;
+    }
+    int left = 0, right = 0, count = b.size(), resLength = INT_MAX, start = 0;
+    while (right < a.size()) {
+        char c = a[right];
+        if (map[c] > 0) {
+            count--;
+        }
+        map[c]--;
+        right++;
+        while (count == 0) {
+            if (right - left < resLength) {
+                resLength = right - left;
+                start = left;
+            }
+            char d = a[left];
+            // right指针在前，已将所有b中字符在map中减去，
+            // 此时map中b的字符均为0，其它的则为负数，
+            // 当left指针指向一个0值，意味着遇到b中字符，不可再缩减
+            if (map[d] == 0) {
+                count++;
+            }
+            map[d]++;
+            left++;
+        }
+    }
+    if (resLength == INT_MAX) return "-1";
+    return a.substr(start, resLength);
+}
+
 
 int main() {
 
-    int n;
-    scanf("%d", &n);
-    int *num = new int[n];
-    for (int i = 0; i < n; i++) {
-        scanf("%d", &num[i]);
+    if (debug) {
+        freopen("data.in", "r", stdin);
     }
-    if (n < 3) {
-        printf("%d", 0);
-        return 0;
-    }
-
-    sort(num, num + n);
-    int count = 0;
-    vector<vector<int> > v;
     
-    for (int i = 0; i < n; i++) {
-        if (i > 0 && num[i] == num[i - 1]) {
-            continue;
-        }
-        int left = 0, right = n - 1;
-        while (left < right) {
-            if (left == i) {
-                left++;
-                continue;
-            }
-            if (right == i) {
-                right--;
-                continue;
-            }
-            if (num[left] + num[right] < num[i]) {  
-                left++;
-            } else if (num[left] + num[right] > num[i]) {
-                right--;
-            } else {
-                v.push_back({num[i], num[left], num[right]});
-                count++;
-                while(left < right && num[left] == num[left + 1])  left++;
-                while(left < right && num[right] == num[right - 1])  right--;
-                left++;
-                right--;
-            }      
-        }
-    }
-    printf("%d\n", count);
-    for (int i = 0; i < v.size(); i++) {
-        printf("%d %d %d    ", v[i][0], v[i][1], v[i][2]);
-    }
+    string a, b;
+    cin >> a >> b;
+    cout << findStr(a, b) << endl;
 
     return 0;
 }

@@ -1,154 +1,103 @@
+/*
+贪心
+*/
+
 #include <cstdio>
-#include <cmath>
+#include <algorithm>
 
 bool debug = false;
 
-typedef struct OLNode {
-    int i, j;
-    double e;
-    OLNode *right, *down;
-}OLNode, *OLink;
+// 实际上是近似最优而不一定是全局最优
+/* 如以下案例：N=6, M=5
+6 5 4 3 3 1 1
+1 2 3 4 5 6
+1 2 3 4
+1     4   6
+  2 3   5
+        5
+          6
+expect: 1 2
+result: 0 3 4 or 0 1 2
+*/
 
-struct CrossList {
-    OLink *rhead, *chead;
-    int m, n, numCnt;
+struct Food {
+    int index;
+    int nutrients;
 };
 
-void CreateMatrix(CrossList *M, int m, int cnt);
-void display(CrossList M);
-void gaussSeidel(CrossList *M, double *x, double *b, int m);
+bool satisfy(int s, int t) {
+    return (s | t) == s;
+}
 
+int N, M, target = 0;
+int Mi[65540], Ni[16], resList[16];
+Food food[65540];
 
 int main() {
-
     if (debug) freopen("./data.in", "r", stdin);
 
-    int m, numCnt;
-    scanf("%d%d", &m, &numCnt);
+    scanf("%d%d", &N, &M);
+    for (int i = 0; i < M; ++i) {
+        scanf("%d", &Mi[i]);
+    }
+    for (int i = 0; i < N; ++i) {
+        scanf("%d", &Ni[i]);
+        target |= 1 << (Ni[i] - 1);
+    }
+    int check = 0;
+    for (int i = 0; i < M; ++i) {
+        food[i].index = i;
+        food[i].nutrients = 0;
+        for (int j = 0; j < Mi[i]; ++j) {
+            int temp = 0;
+            scanf("%d", &temp);
+            food[i].nutrients |= 1 << (temp - 1);
+        }
+        check |= food[i].nutrients;
+    }
 
-    CrossList M;
-    M.rhead = nullptr;
-    M.chead = nullptr;
-    CreateMatrix(&M, m, numCnt);
     if (debug) {
-        printf("输出矩阵M:\n");
-        display(M);
+        for (int i = 0; i < M; ++i) {
+            printf("第%d种食物含有营养%x\n", i, food[i].nutrients);
+        }
+        printf("营养需求为: ");
+        for (int i = 0; i < N; ++i) {
+            printf("%d ", Ni[i]);
+        }
+        printf("%x\n", target);
     }
 
-    double *b = new double[m];
-    double *x = new double[m];
-    for (int i = 0; i < m; ++i) {
-        scanf("%lf", &b[i]);
-        x[i] = 0.0;
+    if (!(satisfy(check, target))) {
+        printf("-1\n");
+        return 0;
     }
 
-    gaussSeidel(&M, x, b, m);
+    int p = 0;
+    int nutrition_covered = 0; // 已选择食物的营养与所需营养交集
+    while (target) {
+        int bestFood = -1;
+        int nutrition_covered = -1; // 已选择食物的营养与所需营养交集的营养
+        for (int i = 0; i < M; ++i) {
+            // __builtin_popcount: 计算二进制中1的个数
+            int cur_covered = __builtin_popcount(target & food[i].nutrients);  // 当前食物营养与所需营养交集
+            if (cur_covered >= nutrition_covered) {
+                nutrition_covered = cur_covered;
+                bestFood = i;
+            } 
+        }
 
-    delete[] b;
-    delete[] x;
+        if (bestFood != -1) {
+            target &= ~food[bestFood].nutrients;
+            resList[p] = food[bestFood].index;
+            p++;
+        }
+    }
+
+    std::sort(resList, resList + p);
+    for (int i = 0; i < p; ++i) {
+        printf("%d ", resList[i]);
+    }
+
+
     return 0;
-}
-
-void CreateMatrix(CrossList *M, int m, int cnt) {
-    OLNode *p = nullptr, *q = nullptr;
-    M->m = m;
-    M->n = m;
-    M->numCnt = cnt;
-
-    M->rhead = new OLink[m];
-    M->chead = new OLink[m];
-    for (int i = 0; i < m; ++i) {
-        M->rhead[i] = nullptr;
-    }
-    for (int i = 0; i < m; ++i) {
-        M->chead[i] = nullptr;
-    }
-    for (int k = 0; k < cnt; ++k) {
-        int i, j;
-        double e;
-        scanf("%d%d%lf", &i, &j, &e);
-        p = new OLNode;
-        p->i = i;
-        p->j = j;
-        p->e = e;
-
-        //如果第 i 行没有非 0 元素，或者第 i 行首个非 0 元素位于当前元素的右侧，直接将该元素放置到第 i 行的开头
-        if (M->rhead[i] == nullptr || M->rhead[i]->j > j) {
-            p->right = M->rhead[i];
-            M->rhead[i] = p;
-        } else { // 链接到目标位置
-            for (q = M->rhead[i]; (q->right) && q->right->j < j; q = q->right);
-            p->right = q->right;
-            q->right = p;
-        }
-        if (M->chead[j] == nullptr || M->chead[j]->i > i) {
-            p->down = M->chead[j];
-            M->chead[j] = p;
-        } else {
-            for (q = M->chead[j]; (q->down) && q->down->i < i; q = q->down);
-            p->down = q->down;
-            q->down = p;
-        }
-    }
-}
-
-void display(CrossList M) {
-    int i,j;
-    //一行一行的输出
-    for (i = 0; i < M.m; i++) {
-        //如果当前行没有非 0 元素，直接输出 0
-        if (nullptr == M.rhead[i]) {
-            for (j = 0; j < M.n; j++) {
-                printf("0 ");
-            }
-            putchar('\n');
-        }
-        else
-        {
-            int n = 0;
-            OLink p = M.rhead[i];
-            //依次输出每一列的元素
-            while (n < M.n) {
-                if (!p || (n < p->j) ) {
-                    printf("0 ");
-                }
-                else
-                {
-                    printf("%f ", p->e);
-                    p = p->right;
-                }
-                n++;
-            }
-            putchar('\n');
-        }
-    }
-}
-
-void gaussSeidel(CrossList *M, double *x, double *b, int m) {
-    double x0[m] = {0.0};
-    int k = 0;
-    do {
-        for (int i = 0; i < m; i++) {
-            double sum = b[i];
-            OLink p = M->rhead[i];
-            while (p != nullptr && p->j < i) {
-                sum -= p->e * x[p->j];
-                p = p->right;
-            }
-            double diag = p->e;
-            p = p->right;
-            while (p != nullptr) {
-                sum -= p->e * x[p->j];
-                p = p->right;
-            }
-
-            x[i] = sum / diag;
-            x0[i] = x[i];
-        }
-        k++;
-    } while (k <= 20);
-    
-    for (int i = 0; i < m; ++i) {
-        printf("%.10lf\n", x[i]);
-    }
 }

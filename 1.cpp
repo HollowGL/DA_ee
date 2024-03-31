@@ -1,48 +1,60 @@
-#include <iostream>
-#include <cstring>
+// reference: [双指针](https://developer.aliyun.com/article/1137665)
+
+#include <cstdio>
+#include <algorithm>
+#include <vector>
+#include <unordered_set>
+using namespace std;
 
 int main() {
 
-    char num1[200], num2[200];
-    scanf("%s %s", num1, num2);
-
-    int len1 = strlen(num1), len2 = strlen(num2);
-    if (len1 < 9 && len2 < 9) {
-        long long n1 = strtol(num1, NULL, 10);
-        long long n2 = strtol(num2, NULL, 10);
-        printf("%lld", n1 + n2);
+    int n;
+    scanf("%d", &n);
+    int *num = new int[n];
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &num[i]);
+    }
+    if (n < 3) {
+        printf("%d", 0);
         return 0;
     }
 
-    char num3[200], num4[200];
-    for (int i = 0; i < len1; i++) 
-        num3[i] = num1[len1 - i - 1];
-    for (int i = 0; i < len2; i++) 
-        num4[i] = num2[len2 - i - 1];
-
-    int maxlen;
-    if (len1 > len2) {
-        maxlen = len1;
-        for (int i = len2; i < maxlen; i++) 
-            num4[i] = '0';
-    }
-    else {
-        maxlen = len2;
-        for (int i = len1; i < maxlen; i++)
-            num3[i] = '0';
-    }
+    sort(num, num + n);
+    int count = 0;
+    vector<vector<int> > v;
     
-    int temp = 0;
-    num3[maxlen] = '0';
-    for (int i = 0; i < maxlen; i++) {
-        temp = num3[i] + num4[i] - '0' - '0';
-        num3[i] = temp % 10 + '0';
-        num3[i + 1] += temp / 10;   // 注意num3[maxlen]本应该是'\0'，因此需要将其先初始化为'0'，并且在后面再单独判断是否有进位
+    for (int i = 0; i < n; i++) {
+        if (i > 0 && num[i] == num[i - 1]) {
+            continue;
+        }
+        int left = 0, right = n - 1;
+        while (left < right) {
+            if (left == i) {
+                left++;
+                continue;
+            }
+            if (right == i) {
+                right--;
+                continue;
+            }
+            if (num[left] + num[right] < num[i]) {  
+                left++;
+            } else if (num[left] + num[right] > num[i]) {
+                right--;
+            } else {
+                v.push_back({num[i], num[left], num[right]});
+                count++;
+                while(left < right && num[left] == num[left + 1])  left++;
+                while(left < right && num[right] == num[right - 1])  right--;
+                left++;
+                right--;
+            }      
+        }
     }
-    
-    int i = num3[maxlen] == '1' ? 0 : 1;
-    for (; i <= maxlen; i++)
-        printf("%c", num3[maxlen - i]);
+    printf("%d\n", count);
+    for (int i = 0; i < v.size(); i++) {
+        printf("%d %d %d    ", v[i][0], v[i][1], v[i][2]);
+    }
 
     return 0;
 }

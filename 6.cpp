@@ -1,146 +1,155 @@
+/*
+并查集
+*/
+
 #include <iostream>
-#include <queue>
+#include <string>
+#include <unordered_map>
+#include <vector>
 using namespace std;
 
-// 还需把所有cin cout相关代码删除，否则会超时
 bool debug = true;
 
-struct Node {
-    int value, maxLeft;
-    Node *left, *right;
-    Node(int v, Node *l = nullptr, Node *r = nullptr) { 
-        value = v;
-        left = l;
-        right = r;
-        maxLeft = -1;
-    }
-};
 
-class BST {
+// 检测是否为同一文件，有很多冗余，还可能有bug
+bool isSameFile(string s1, string s2) {
+    int len1 = s1.length(), len2 = s2.length();
+    int lenDiff = len1 - len2;
+    if (lenDiff > 1 || lenDiff < -1) {
+        return false;
+    }
+    // 有数字
+    if (s1[len1 - 1] >= '0' && s1[len1 - 1] <= '9') {
+        if (s2[len2 - 1] >= '0' && s2[len2 - 1] <= '9') {
+            if (s1.substr(0, len1 - 1) == s2.substr(0, len2 - 1))  // 有两个数字相同而相差下划线的清况，不能直接return
+                return true;
+        } else {
+            return s1.substr(0, len1 - 1) == s2;
+        }
+    } else if (s2[len2 - 1] >= '0' && s2[len2 - 1] <= '9') {
+        return s2.substr(0, len2 - 1) == s1;
+    }
+
+    // 没有（或都有）数字的话，那长度肯定不等
+    if (lenDiff == 0) {
+        return false;
+    }
+
+    // 下划线
+    int p = 0;
+    while (p < len1 && p < len2) {
+        if (s1[p] != s2[p]) {
+            if (s1[p] == '_') 
+                return s1.replace(p, 1, "") == s2;
+            return s2.replace(p, 1, "") == s1;
+        }
+        p++;
+    }
+    // 下划线出现在末尾
+    if (len1 > len2) 
+        return s1[p] == '_';
+    else if (len1 < len2)
+        return s2[p] == '_';
+    return false;
+}
+
+// 删去所有下划线和数字作为键
+string getKeyStr(string str) {
+    int i = 0;
+    for (; i < str.length(); ++i) {
+        if (str[i] == '_') {
+            str.replace(i, 1, "");
+            i--;
+        }
+    }
+    if (str[i - 1] >= '0' && str[i - 1] <= '9') {
+        return str.substr(0, i - 1);
+    }
+    return str;
+}
+
+// 并查集，随着调用次数增加，复杂度趋于常数
+class UnionFind {
 public:
-    Node *root;
-    int succflag;         // 除了最右的右子树的叶子结点，其它结点都有中序后继，且它们的值都小于前者
-    BST() { root = NULL; }
-    BST(int preorder[], int n) {
-        root = process(preorder, 0, n - 1);
-        Node *p = root;
-        while (p->right) { p = p->right; }
-        succflag = p->value; // 实际上就是中序遍历的最后一个值，也是最大值
+    UnionFind(int n) : parent(n), size(n, 1) {
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+        }
     }
 
-    // 通过前序遍历构建二叉树
-    Node* process(int preorder[], int start, int end) {
-        if (start > end) return nullptr;
-        int mid = start, val = preorder[start];
-        while (mid <= end && preorder[mid] <= val) { // 找到右结点
-            mid++;
+    // 不仅返回其根结点，还将沿途中的结点都指向更高一级，压缩了路径
+    int find(int i) {
+        if (parent[i] != i) {
+            parent[i] = find(parent[i]);
         }
-        Node* left = process(preorder, start + 1, mid - 1);
-        Node* right = process(preorder, mid, end);
-        return new Node(val, left, right);
+        return parent[i];
     }
+
+    // 将深度较小的树根结点连接到深度较大的树
+    void unite(int i, int j) {
+        int pi = find(i), pj = find(j);
+        if (pi != pj) {
+            if (size[pi] < size[pj]) {
+                swap(pi, pj);
+            }
+            parent[pj] = pi;
+            size[pi] += size[pj];
+        }
+    }
+
+    bool isConnected(int i, int j) {
+        return (find(i) == find(j));
+    }
+
+private:
+    vector<int> parent;
+    vector<int> size;
 };
-
-int maxLeft(Node *root) { // 中序前继
-    Node *max = root->left;
-    while (max->right != nullptr) {
-        max = max->right;
-    }
-    return max->value;
-}
-
-// 对数进行压缩，先序遍历
-Node* compress(Node *root, int succFlag) {
-    
-    if (root->left != nullptr) {
-        root->maxLeft = maxLeft(root);
-    }
-    if (!root->left && !root->right && root->value < succFlag) {
-        delete root; // 没有用
-        return nullptr;
-    }
-
-    if (root->left) {
-        root->left = compress(root->left, succFlag);
-    }
-    if (root->right) {
-        root->right = compress(root->right, succFlag);
-    }
-    return root;
-}
-
-// 打印先序遍历的结果
-void printBST(Node* root) {
-    if (root == nullptr) {
-        return;
-    }
-    printf("%d ", root->value);
-    if (root->maxLeft < 0) {
-        printf("- ");
-    } 
-    else {
-        printf("%d ", root->maxLeft);
-    }
-    printBST(root->left);   
-    printBST(root->right);   
-}
-
-void levelOrderTraversal(Node* root) {
-    if (!root) {
-        return;
-    }
-    queue<Node*> q;
-    q.push(root);
-
-    while (!q.empty()) {
-        int size = q.size();
-        for (int i = 0; i < size; i++) {
-            Node* node = q.front();
-            q.pop();
-            cout << node->value << "_";
-            if (node->maxLeft != -1) {
-                cout << node->maxLeft << " ";
-            } else {
-                cout << "- ";
-            }
-            if (node->left) {
-                q.push(node->left);
-            }
-            if (node->right) {
-                q.push(node->right);
-            }
-        }
-        cout << endl;
-    }
-}
-
 
 int main() {
+
     if (debug) {
-        freopen("data.in", "r", stdin);
+        freopen("./data.in", "r", stdin);
     }
 
     int n;
-    scanf("%d", &n);
-    int *preorder = new int[n];
-    for (int i = 0; i< n; i++) {
-        scanf("%d", &preorder[i]);
-    }
-    BST bst(preorder, n);
-    delete[] preorder;  // 有用，不删会MLE
+    cin >> n;
 
-    if (debug) {
-        levelOrderTraversal(bst.root);
-        cout << endl;
-    }
-
-    compress(bst.root, bst.succflag);
-    if (debug) {
-        levelOrderTraversal(bst.root);
-    } else {
-        printBST(bst.root);
+    // 将相似的文件放在一个同一个键值对下
+    unordered_map<string, vector<pair<int, string>>> hashmap;
+    for (int i = 0; i < n; i++) {
+        int m;
+        cin >> m;
+        for (int j = 0; j < m; ++j) {
+            string filename;
+            cin >> filename;
+            string key = getKeyStr(filename);
+            hashmap[key].emplace_back(i, filename);
+        }
     }
 
+    int maxDuplicate = 0;
+    for (auto iter = hashmap.begin(); iter != hashmap.end(); ++iter) {
+        UnionFind uf(n);
+        int duplicate = 1;
+        auto key = iter->first;
+        auto vals = iter->second;
+        for (int i = 0; i < vals.size() - 1; ++i) {
+            for (int j = 0; j < vals.size(); ++j) {
+                if (uf.isConnected(vals[i].first, vals[j].first)) {
+                    continue;
+                }
+                if (isSameFile(vals[i].second, vals[j].second)) {
+                    uf.unite(vals[i].first, vals[j].first);
+                    duplicate++;
+                }
+            }
+        }
+        if (duplicate > maxDuplicate)
+            maxDuplicate = duplicate;
+    }
+
+    cout << maxDuplicate << endl;
 
     return 0;
 }
